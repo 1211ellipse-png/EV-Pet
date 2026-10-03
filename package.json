@@ -1,0 +1,48 @@
+{
+  "name": "ev-pet",
+  "version": "0.1.0",
+  "description": "A procedural cyber-spider desktop companion",
+  "author": "EV-Pet contributors",
+  "license": "MIT",
+  "private": false,
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "preview": "node scripts/preview-server.cjs",
+    "dist": "electron-builder --win nsis",
+    "dist:dir": "electron-builder --dir --win"
+  },
+  "dependencies": {
+    "active-win": "^8.2.1",
+    "uiohook-napi": "^1.5.5"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "io.evpet.desktop",
+    "productName": "EV Pet",
+    "directories": {
+      "output": "release"
+    },
+    "npmRebuild": false,
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "config.json",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "EV-Pet-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}

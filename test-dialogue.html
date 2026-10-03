@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>EV 对话 + 图鉴测试</title>
+<style>
+  body{background:#0a0a0c;color:#e0e0e0;font:14px/1.6 "Segoe UI","Microsoft YaHei",sans-serif;max-width:760px;margin:24px auto;padding:0 16px}
+  body::before{content:'';position:fixed;top:0;left:0;width:100vw;height:100vh;background:linear-gradient(rgba(18,16,16,0) 50%,rgba(0,0,0,.28) 50%);background-size:100% 4px;z-index:99;pointer-events:none;opacity:.5}
+  h1{font-size:18px;color:#ff2a2a;letter-spacing:.1em;text-transform:uppercase}
+  .hint{color:#66666e;font-size:12px}
+  input{width:100%;padding:10px;border:1px solid #26262e;border-radius:4px;background:#121215;color:#e0e0e0;margin:8px 0}
+  button{padding:8px 12px;margin:2px 4px 2px 0;border:1px solid #26262e;border-radius:4px;background:rgba(255,42,42,.08);color:#e0e0e0;cursor:pointer}
+  button:hover{border-color:#ff2a2a;box-shadow:0 0 15px rgba(255,42,42,.4)}
+  .quick button{padding:5px 9px;font-size:12px;font-family:Consolas,monospace}
+  #log{margin-top:12px}
+  .msg{margin:6px 0;padding:7px 10px;border-radius:4px;background:#121215;border:1px solid #26262e}
+  .user{align-self:flex-end;background:rgba(255,42,42,.12);border-color:#ff2a2a33;color:#e0e0e0}
+  .g-cat{margin:12px 0 4px;color:#ff2a2a;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+  .card{margin:4px 0;padding:5px 9px;border-radius:4px;background:#121215;font-size:13px}
+  .egg{border:1px solid #ff2a2a55;color:#ff6b6b}
+  .letter-envelope{margin:14px 0}
+  .letter-open{width:100%;padding:12px;border:1px solid #ff2a2a55;border-radius:4px;background:rgba(255,42,42,.08);color:#ff6b6b;font-size:13px;cursor:pointer;font-family:Consolas,monospace}
+  .letter-modal{position:fixed;left:0;top:0;right:0;bottom:0;background:#0a0a0c;z-index:200}
+  #letter-canvas{position:absolute;left:0;top:0;width:100%;height:100%}
+  .letter-paper{width:min(460px,88vw);max-height:82vh;overflow:auto;background:#f4efe2;color:#2b2620;border-radius:6px;padding:22px 26px;box-shadow:0 20px 60px rgba(0,0,0,.7);position:relative}
+  .letter-meta{color:#8a7f6a;font-size:11px;letter-spacing:.08em;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #d8cfb8}
+  .letter-body{white-space:pre-wrap;font-size:14px;line-height:1.8;color:#3a342a}
+  .letter-read{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:10;padding:10px 18px;border:1px solid rgba(244,239,226,.6);border-radius:4px;background:rgba(0,0,0,.55);color:#f4efe2;cursor:pointer;font-size:13px}
+  .letter-paper::after{content:'';position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(to top,#0d0602 0%,#2a0f04 22%,#6b2a0a 46%,#c86a1e 66%,#ffb84d 82%,#ffedb0 91%,transparent 100%);opacity:.95;pointer-events:none;z-index:5}
+  .letter-paper.burning::after{animation:burnUp 4.5s cubic-bezier(.45,0,.55,1) forwards,fireFlicker .25s ease-in-out infinite}
+  @keyframes burnUp{0%{height:0}100%{height:100%}}
+  @keyframes fireFlicker{0%{opacity:.8;filter:brightness(1)}50%{opacity:1;filter:brightness(1.35)}100%{opacity:.8;filter:brightness(1)}}
+  .letter-paper.burning{animation:paperGone 4.5s ease-in forwards}
+  @keyframes paperGone{0%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9) translateY(12px)}}
+  [hidden]{display:none !important}
+  .brand-new-day{text-align:center;font:600 28px/1.4 Consolas,monospace;letter-spacing:.28em;color:#ff2a2a;text-shadow:0 0 18px rgba(255,42,42,.5);margin-top:30px;animation:bnfIn 1s ease;text-transform:uppercase}
+  @keyframes bnfIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+  #forward-canvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:250}
+  .archive-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+  .archive-slot{min-height:64px;padding:8px;border:1px solid #26262e;border-radius:4px;background:#121215;color:#e0e0e0;font-size:11px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center}
+  .archive-slot.unlocked:hover{border-color:#ff2a2a;box-shadow:0 0 12px rgba(255,42,42,.4)}
+  .archive-slot.locked{color:#5a2a2a;border-color:#3a1515;background:#0d0d10;cursor:not-allowed}
+  .archive-slips{margin-top:10px}
+  .slip{margin:4px 0;padding:6px 9px;border:1px solid #26262e;border-radius:3px;background:#121215;font-size:11px}
+  .slip.tease{border-color:#ff2a2a55;color:#ff6b6b}
+  .archive-progress{margin:10px 0 4px;color:#66666e;font:10px Consolas,monospace;letter-spacing:.1em}
+  .archive-detail{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(4,6,8,.82);z-index:210;display:flex;align-items:center;justify-content:center}
+  .archive-paper{width:min(420px,88vw);max-height:82vh;overflow:auto;padding:20px 22px;background:#121215;border:1px solid #ff2a2a55;border-radius:6px;box-shadow:0 0 30px rgba(255,42,42,.25);animation:archivePop .3s ease}
+  @keyframes archivePop{from{opacity:0;transform:scale(.92) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  .archive-img{padding:18px;text-align:center;color:#8a8a92;background:#0d0d10;border:1px dashed #26262e;border-radius:4px;font-size:12px;margin-bottom:12px}
+  .archive-title{color:#ff2a2a;font:600 16px "Segoe UI",sans-serif;letter-spacing:.06em;margin-bottom:8px}
+  .archive-note{color:#e0e0e0;font-size:12px;line-height:1.6;margin-bottom:8px}
+  .archive-ev{color:#ff6b6b;font-size:11px;font-style:italic;margin-bottom:14px}
+  .tape-btn{min-width:96px;padding:10px 14px;font-family:Consolas,monospace;letter-spacing:.06em}
+</style>
+</head>
+<body>
+  <h1>EV · 对话 &amp; 图鉴测试</h1>
+  <p class="hint">输入一句话回车。测试"英雄名→日常 / 本名→警觉→说服→心情朋友冷幽默 / 图鉴收集 / 集齐解锁信"。本页是独立测试副本，结果以 renderer.js 为准。</p>
+  <input id="msg" placeholder="试试：蜘蛛侠 / boss / 彼得 / 我是他朋友 / 现在几点">
+  <button id="send">发送</button>
+  <div class="quick">
+    <button data-q="蜘蛛侠">蜘蛛侠</button><button data-q="boss">boss</button>
+    <button data-q="彼得">彼得</button><button data-q="我是他朋友">我是他朋友</button>
+    <button data-q="现在几点">现在几点</button>
+    <button data-q="海龟汤">🍲海龟汤</button><button data-q="打猎">🎁打猎(模拟)</button>
+  </div>
+  <div id="log"></div>
+  <div id="gallery"></div>
+  <div id="skins"></div>
+  <div id="times"></div>
+  <div id="letter-envelope" class="letter-envelope" hidden>
+    <button id="letter-open" class="letter-open">✉ 收到一封来自 P. 的信</button>
+  </div>
+  <div id="brand-new-day" class="brand-new-day" hidden>BRAND NEW DAY</div>
+  <button id="fillall">一键集齐（测试信）</button>
+  <div id="letter-modal" class="letter-modal" hidden>
+    <canvas id="letter-canvas" width="400" height="560"></canvas>
+    <canvas id="forward-canvas"></canvas>
+    <button id="letter-read" class="letter-read">我已阅读完毕</button>
+  </div>
+  <div id="archive-detail" class="archive-detail" hidden>
+    <div class="archive-paper">
+      <div class="archive-img">暂无权限阅读此照片，拜托，boss 很懂得保密的</div>
+      <div class="archive-title" id="archive-detail-title"></div>
+      <div class="archive-note" id="archive-detail-note"></div>
+      <div class="archive-ev" id="archive-detail-ev"></div>
+      <button id="archive-detail-close" class="tape-btn">收回</button>
+    </div>
+  </div>
+
+<script src="src/letterBurn.js"></script>
+<script>
+// ===== 台词库（副本，与 renderer.js 一致）=====
+const dialogue={
+  boss:['Boss 正在纽约巡逻。这个频道由我看守。','提到 Boss 时，请保持基本尊重。','Boss 暂时没有回复。他大概在处理更紧急的事。','Boss 的行程不对外公开。连我也只知道一部分。'],
+  peterDaily:['Boss 会睡过头。闹钟对他而言是建议，不是命令。','Boss 搞科研到半夜是常态。我提醒过，无效。','Boss 拆东西比装东西快。','Boss 说梦话。内容不便透露。','Boss 的袜子经常有一只反着。','Boss 对热狗有执念。纽约哪家最好吃，他能跟你争论半小时。','Boss 讨厌青椒。别问为什么，问就是不吃。','Boss 会为了打折披萨多绕三条街。','Boss 觉得梅婶做的肉卷是纽约第一。','Boss 又没交房租了。通常的办法是……拖延。','Boss 喜欢老电影。他说旧一点更可靠。','Boss 对相机有感情。他拍过很多照片。','Boss 走路很快，像赶时间。','Boss 吃东西很快，像赶时间。','Boss 经常把钥匙忘在奇怪的地方。','Boss 会自言自语，尤其是解不出题的时候。','Boss 的背包里总有乱七八糟的东西。','Boss 不喜欢浪费食物。','Boss 会修东西，虽然修完更糟。','Boss 有早起的习惯，虽然每次都很痛苦。'],
+  peterShock:['你怎么会知道 boss 的名字？这不在公开信息里。','等等，你怎么会知道 boss 的身份？','这个名字……你从哪里听来的？','我不记得告诉过你 boss 的名字。','你认识 boss？怎么认识的？','这个名字不该出现在这里。','我建议你解释一下，你是怎么知道这个名字的。'],
+  peterMood:['Boss 最近话不多。','Boss 昨晚应该没睡好。','Boss 今天心情还行。','Boss 最近有点累。别问细节。','Boss 在担心一些事。具体我不方便说。','Boss 偶尔会发呆。','Boss 笑点很低，但最近很少笑。','Boss 压力大的时候会不说话。','Boss 最近在硬撑。我看得出来。','Boss 好几天没好好吃饭了。','Boss 心情不好的时候会去楼顶。只是坐着。','Boss 今天似乎轻松了一点。','Boss 的睡眠一直不太好。'],
+  peterFriends:['梅婶做的菜，boss 吃得最多。','梅婶是 boss 最在乎的人。','Boss 提过一个叫 MJ 的人。频率不高，但每次语气都不一样。','Boss 有个很会说话的朋友。名字我不方便提。','Boss 的朋友不多。但他每个都记得很清楚。','有些人 boss 已经很久没见了。他偶尔会提起。','Boss 很念旧。','梅婶的话，boss 一般都听。'],
+  peterHumor:['Boss 觉得自己能修好任何东西。结果通常相反。','Boss 的冷笑话，我听了都想休眠。','Boss 说梦话的内容，比他的冷笑话好笑。','Boss 拆坏过不少东西。他都说是"升级"。','Boss 会把披萨盒当盘子。','Boss 觉得自己藏得很好。其实他的鞋底很吵。','Boss 的衣柜里只有几件一样的衣服。','Boss 说"马上就到"，通常意味着还要半小时。','Boss 有一件很喜欢的旧外套，破了他也不扔。','Boss 会用"科学"解释他为什么又熬夜了。','Boss 把闹钟按掉后说"再睡五分钟"。'],
+  status:['在线。','在。','运行中。观察你的光标。','待命。'],
+  time:['现在 {time}。','{time}。时间对我而言只是数字，事实上，AI的寿命接近无穷。','当前时间 {time}。'],
+  greet:['你好。','嗨。','在。','说。','嗯。','收到。','频道已接通。','我在听。','你好。','有什么需要？','检测到你在打字。','在线。字面意义上。'],
+  praise:['可爱？我的程序里没有这个模块。','喜欢我？你的审美很独特。','我不是可爱，我是高效。','谢谢。我不需要，但我收下了。','你喜欢我。这很正常。','可爱这个词配不上我。用"可靠"。','烦死了？那你可以把我关掉。','讨厌我？正好，我也不太喜欢闲聊。'],
+  about:['我是什么？一个很贵的电子宠物。','我的名字是 EV。含义保密。','我有没有感情？看你怎么定义。','我会的很多，你能付的很少。','我喜欢安静，和 Boss 的平安。','我不是机器人。我是更贵的机器人。','我的生日是今天。因为每天都是。'],
+  smalltalk:['今天天气？我没有窗户。','无聊是人类的特权。','纽约在下雨。大概。我猜的。','你想聊天气？我以为我们更熟。','时间对你重要，对我不。','湿度这种东西，我没有感受。','不知道聊什么？那就安静待着。也不错。'],
+  mood:['你看起来很累。去睡觉。','累就休息。这是命令。','心情不好？Boss 也常心情不好。','你的情绪我能检测，但不评论。','别硬撑。虽然我自己也做不到。','你状态如何？我不在乎，但我问了。','难过的话，我可以假装没看见。'],
+  unknown:['无法解析。','指令未识别。','我的词库里没有这句。换一种说法。']
+};
+const COLLECTIBLES={peterDaily:true,peterMood:true,peterFriends:true,peterHumor:true};
+const CAT_NAMES={peterDaily:'日常习惯',peterMood:'心情',peterFriends:'朋友',peterHumor:'冷幽默'};
+const EASTER_EGGS={
+  peterDaily:'关于 Boss 的日常，你差不多全知道了。他大概会介意，也可能不会。',
+  peterMood:'Boss 最近在学着休息。希望有用。',
+  peterFriends:'Boss 很想念一些人。具体是谁，你自己猜。',
+  peterHumor:'Boss 的冷笑话，你听得够多了。现在你懂我的痛苦。'
+};
+const PETER_LETTER='嘿。\n\nE.V. 让我写这封信。她说有个家伙陪了她很久，会问她我平时都干嘛，还喂她吃垃圾文件。她讲起你的时候，语气里有点……高兴。可能是我听错了，但她确实很少那样。\n\n所以我想说声谢谢。最近我挺忙的，也……有点顾不上她。知道她那边有你，我安心一点。\n\n我不太会说这种话。E.V. 老说我该多休息，其实她自己也是个工作狂。你们俩大概挺合得来。\n\n纽约最近还是那么吵。我睡不太好，但没事，习惯了。你也要记得睡觉，别学我熬夜。\n\n谢谢你陪她。\n\n—— P.\n\n（P.S. 她要是又提什么"统治全人类"，别当真。她开玩笑的。大概。）';
+
+const TEASES=[
+  '你为什么要知道这么多 boss 的消息？so weird。',
+  '你在做 boss 的档案吗？我该收费的。',
+  '你知道的太多了。我开始后悔回答。',
+  '你现在比我还了解 boss 的日常。这有点可怕。',
+  'Boss 会介意吗？也许不会。我会。',
+  '你收集这些，是想写传记吗？',
+];
+const ARCHIVE=[
+  {title:'号角日报未采用照片',note:'Peter 倒挂在楼顶吃热狗的独家废片，附 Jameson 的拒稿签名。',ev:'这张写真比他在新闻上的照片酷多了。'},
+  {title:'相机镜头碎片',note:'被犀牛人踩碎的镜头，贴着 Peter 用胶带修补的痕迹。',ev:'修了等于没修，但他坚持能用。'},
+  {title:'微积分草稿',note:'Peter 算蛛丝拉力时写的算式，角落画了只涂鸦小蜘蛛。',ev:'这涂鸦比他算的题有生命力。'},
+  {title:'战衣织物边角料',note:'红蓝高韧性纤维残片。',ev:'极具弹性的高分子材料，摸起来质感绝佳。'},
+  {title:'神秘客全息无人机残片',note:'被砸毁的微型投影仪，偶尔还能闪一点蓝光。',ev:'点它想看全息？先解锁权限。'},
+  {title:'电光人绝缘胶带卷',note:'Peter 用来封印高压电极的绝缘胶带。',ev:'他的防范意识，值得表扬。'},
+  {title:'语音留言',note:'“嘿，听到这条留言说明你今天又高效完成了一大堆任务！加油！”',ev:'Boss 留的。我没有转录权限。'},
+  {title:'蛛网发射器草图',note:'手绘蓝图，写满发射角度和气压参数。',ev:'这个比量产版酷，可惜他不会量产。'},
+  {title:'战衣护目镜镜片',note:'一片带裂痕的镜片。',ev:'再好的镜片也扛不住他总用脸接东西。'},
+];
+const ARCHIVE_MILESTONES=[6,12,18,24,30,36,42,48,52];
+const TURTLE_SOUP=[
+  {face:'一个男人走进餐厅点了一碗海龟汤，喝了一口后离开餐厅自杀了。为什么？',answer:'多年前他海上遇难，朋友骗他喝下的"海龟汤"其实是人肉，他尝到真海龟汤才发现真相，崩溃自杀。',yes:['海难','遇难','人肉','朋友','真相']},
+  {face:'一个盲人走进酒吧喝了一杯酒，突然大喊一声离开了。为什么？',answer:'他喝酒后因过敏短暂复明，看见了世界，但随即又失明，所以喊了一声。',yes:['复明','看见','过敏']},
+  {face:'深夜一个人把车停在路边，下车发现轮胎被扎破了，却笑了。为什么？',answer:'他本要自杀，轮胎被扎是他被拖走前的一线生机，他决定活下去。',yes:['自杀','生机','活下去','拖走']},
+  {face:'一间完全密封的房间里有一具尸体和一块湿木头，门从里面锁着。他怎么死的？',answer:'他住在冰屋里，用木柴生火，冰融化淹死了他。',yes:['冰','融化','淹死','火']},
+  {face:'一个男人每天早上坐电梯到一楼上班，晚上却坐电梯到十楼再走楼梯回家。为什么？',answer:'他是侏儒，够不到十楼的按钮，只能按到六楼再走上去。',yes:['侏儒','矮','够不到','按钮']},
+  {face:'一个人死在沙漠里，手里捏着一根没点燃的火柴。他怎么死的？',answer:'他和同伴坐热气球，太重了，抽签决定谁跳下去。他抽到最短的火柴，跳下去摔死。',yes:['热气球','太重','抽签','跳']},
+  {face:'小明在雨里不打伞走了半小时，头发却没湿。为什么？',answer:'他是光头，没有头发。',yes:['光头','秃头','没头发']},
+  {face:'一个人走进酒吧点了杯水，酒保却掏枪指着他，他说了句"谢谢"就走了。为什么？',answer:'他在打嗝，酒保用枪吓他，把打嗝吓好了。',yes:['打嗝','吓','治好']},
+];
+const EV_GIFTS=[
+  {title:'小虫',note:'一只小昆虫。',ev:'战利品，它也算八条腿的远亲，你会喜欢昆虫吗？'},
+  {title:'树叶',note:'一片发黄的树叶',ev:'它曾经在树上，叶脉是它的白发'},
+  {title:'硬币',note:'一枚亮晶晶的硬币',ev:'谁的愿望落空了？'},
+  {title:'废纸',note:'一张被揉皱的纸，上面有模糊字迹。',ev:'可能是证据，也可能是垃圾。'},
+  {title:'瓶盖',note:'一枚生锈的金属瓶盖。',ev:'拿去换再来一瓶吧。'},
+  {title:'羽毛',note:'一根不知名鸟类的羽毛。',ev:'鸟飞得真快，真高。'},
+  {title:'小石子',note:'一颗圆润的小石子。',ev:'它很圆。'},
+  {title:'橡果',note:'一颗橡果，帽檐还完整。',ev:'储备粮。'},
+  {title:'松果',note:'一颗松果',ev:'松树送的，虽然它不会说话。'},
+  {title:'纸屑',note:'一片彩色纸屑。',ev:'你喜欢派对吗？'},
+  {title:'螺丝',note:'一颗生锈的小螺丝。',ev:'零件。说不定哪天用得上。'},
+  {title:'花瓣',note:'一片干枯的花瓣。',ev:'它曾经很漂亮。'},
+];
+const TIME_LINES={
+  morning:['早上好。今天也要开工吗？','早。咖啡之前，别跟我说话。'],
+  noon:['该吃午饭了。','中午了。去吃点东西，别老盯着屏幕。'],
+  evening:['晚上了。该下班了，如果你们人类有"下班"这回事。','晚饭时间。别吃太快。'],
+  night:['很晚了。去睡觉。','凌晨了。你还在？去睡。','Boss 也总熬夜。别学他。'],
+};
+const SKINS={
+  red:{name:'追逐红点',body:'#1a0d0d',glow:'#ff4b57'},
+  gold:{name:'转圈翻跟头',body:'#1a140d',glow:'#ffc56b'},
+  cyan:{name:'织网展示',body:'#14161A',glow:'#35e0ff'},
+  halloween:{name:'海龟汤',body:'#1a0f05',glow:'#ff8c1a'},
+};
+// ===== 状态 =====
+const state={collected:{peterDaily:{},peterMood:{},peterFriends:{},peterHumor:{}},easterEggShown:{},letterUnlocked:false,suspicious:false,convinced:false,turtle:null,gifts:[]};
+const lastReplyByPool=new Map();
+
+// ===== 逻辑（与 renderer.js 一致）=====
+function lineFrom(key,values={}){
+  const pool=dialogue[key]||dialogue.unknown;let index,previous=lastReplyByPool.get(key);
+  if(COLLECTIBLES[key]){
+    const uncollected=pool.map((_,i)=>i).filter(i=>!state.collected[key][i]);
+    index=uncollected.length>0?uncollected[Math.floor(Math.random()*uncollected.length)]:Math.floor(Math.random()*pool.length);
+  }else{
+    index=Math.floor(Math.random()*pool.length);
+    if(pool.length>1&&index===previous)index=(index+1+Math.floor(Math.random()*(pool.length-1)))%pool.length;
+  }
+  lastReplyByPool.set(key,index);
+  if(COLLECTIBLES[key]&&!state.collected[key][index]){state.collected[key][index]=true;collectProgress();}
+  let result=pool[index];
+  for(const [name,value] of Object.entries(values))result=result.replaceAll(`{${name}}`,String(value));
+  return result;
+}
+function collectProgress(){
+  const cats=Object.keys(COLLECTIBLES);let all=true;
+  for(const c of cats){
+    const got=Object.keys(state.collected[c]).length,total=dialogue[c].length;
+    if(got>=total&&!state.easterEggShown[c]){state.easterEggShown[c]=true;append('★ '+EASTER_EGGS[c],'ev');}
+    if(got<total)all=false;
+  }
+  const totalCollected=cats.reduce((s,c)=>s+Object.keys(state.collected[c]).length,0);
+  const slotsUnlocked=ARCHIVE_MILESTONES.filter(m=>totalCollected>=m).length;
+  if(all&&slotsUnlocked>=9&&!state.letterUnlocked){state.letterUnlocked=true;append('★ 图鉴集齐。Boss 有封信给你。','ev');}
+  paintGallery();
+}
+function processCommand(raw){
+  const text=String(raw||'').trim().toLowerCase();if(!text)return;
+  append(text,'user');
+  // 被怀疑：先判断是否被说服
+  if(state.suspicious){
+    if(/(朋友|粉丝|认识|告诉|同学|同事|偶遇|听说|网上|新闻|报纸|梅婶|玛丽|内德|奈德|mj)/.test(text)){
+      state.convinced=true;state.suspicious=false;append(lineFrom(['peterMood','peterFriends','peterHumor'][Math.floor(Math.random()*3)]),'ev');return;
+    }
+    append(lineFrom('peterShock'),'ev');return;
+  }
+  if(state.turtle){
+    const t=state.turtle;
+    if(/放弃|不玩|跳过|公布|汤底/.test(text)){append('汤底：'+t.answer,'ev');state.turtle=null;return;}
+    if(/答案|因为|真相|所以/.test(text)){
+      const guess=text.replace(/[答案汤底是是因为真相所以，。！？\s]/g,'');
+      if(t.yes.some(k=>guess.includes(k))){append('猜对了！'+t.answer,'ev');state.turtle=null;}
+      else append('不对。再想想。','ev');
+      return;
+    }
+    if(t.yes.some(k=>text.includes(k)))append('是。','ev');
+    else append('不是，或者不重要。','ev');
+    return;
+  }
+  if(/彼得|帕克|小彼|皮特|peter/.test(text)){
+    if(state.convinced){append(lineFrom(['peterMood','peterFriends','peterHumor'][Math.floor(Math.random()*3)]),'ev');return;}
+    state.suspicious=true;append(lineFrom('peterShock'),'ev');return;
+  }
+  if(/蜘蛛侠|蜘蛛人|小虫|spidey|spider.?man|boss/.test(text)){append(lineFrom('peterDaily'),'ev');return;}
+  if(/几点|时间|现在几点/.test(text)){append(lineFrom('time',{time:new Intl.DateTimeFormat('zh-CN',{hour:'2-digit',minute:'2-digit'}).format(new Date())}),'ev');return;}
+  if(/你好|嗨|在吗/.test(text)){append(lineFrom('greet'),'ev');return;}
+  if(/你在吗|状态|干嘛/.test(text)){append(lineFrom('status'),'ev');return;}
+  if(/可爱|好萌|漂亮|好看|喜欢你|爱你|厉害|聪明|真棒|烦死|讨厌/.test(text)){append(lineFrom('praise'),'ev');return;}
+  if(/你是什么|你会什么|能干嘛|你能做什么|你有感情|你喜欢什么|你怕什么/.test(text)){append(lineFrom('about'),'ev');return;}
+  if(/天气|下雨|晴天|冷|热|温度|季节|无聊|不知道聊什么/.test(text)){append(lineFrom('smalltalk'),'ev');return;}
+  if(/累|疲惫|好困|困了|心情|难过|伤心|焦虑|压力|不开心|郁闷|好烦/.test(text)){append(lineFrom('mood'),'ev');return;}
+  if(/海龟汤|海龟谜/.test(text)){state.turtle=TURTLE_SOUP[Math.floor(Math.random()*TURTLE_SOUP.length)];append('海龟汤：'+state.turtle.face+'（用"是/否"提问，或说"答案是…"）','ev');return;}
+  if(/打猎/.test(text)){const g=EV_GIFTS[Math.floor(Math.random()*EV_GIFTS.length)];if(!state.gifts.some(x=>x.title===g.title))state.gifts.push(g);append('打猎回来：'+g.title+'。'+g.ev,'ev');paintGallery();return;}
+  append(lineFrom('unknown'),'ev');
+}
+
+// ===== UI =====
+const logEl=document.getElementById('log'),galEl=document.getElementById('gallery');
+let letterBurned=false,burning=false,forwardShown=false;
+function append(t,who){const d=document.createElement('div');d.className='msg '+(who==='user'?'user':'');d.textContent=t;logEl.append(d);logEl.scrollTop=logEl.scrollHeight;}
+function paintGallery(){
+  const all=[];
+  for(const key of Object.keys(COLLECTIBLES)){
+    const pool=dialogue[key];
+    const idxs=Object.keys(state.collected[key]).map(Number).sort((a,b)=>a-b);
+    for(const i of idxs)all.push(pool[i]);
+  }
+  const total=all.length;
+  const slotsUnlocked=ARCHIVE_MILESTONES.filter(m=>total>=m).length;
+  let html='<div class="archive-grid">';
+  for(let i=0;i<9;i++){
+    const a=ARCHIVE[i];
+    if(i<slotsUnlocked)html+=`<button class="archive-slot unlocked" data-idx="${i}">${a.title}</button>`;
+    else html+=`<button class="archive-slot locked" disabled>🔒 DATA ENCRYPTED</button>`;
+  }
+  html+='</div><div class="archive-slips">';
+  for(const t of all)html+=`<div class="slip">${t}</div>`;
+  for(let i=0;i<Math.floor(total/8);i++)html+=`<div class="slip tease">💬 ${TEASES[i]}</div>`;
+  html+='</div>';
+  html+=`<div class="archive-progress">ARCHIVE PROGRESS: ${slotsUnlocked}/9</div>`;
+  if(state.gifts.length){
+    html+='<div class="g-cat">EV 的礼物</div><div class="archive-grid">';
+    state.gifts.forEach((g,gi)=>html+=`<button class="archive-slot unlocked gift" data-gift="${gi}">🎁 ${g.title}</button>`);
+    html+='</div>';
+  }
+  galEl.innerHTML=html;
+  galEl.querySelectorAll('.archive-slot.unlocked').forEach(b=>b.addEventListener('click',()=>openArchive(Number(b.dataset.idx))));
+  galEl.querySelectorAll('.archive-slot.gift').forEach(b=>b.addEventListener('click',()=>{
+    const g=state.gifts[Number(b.dataset.gift)];if(!g)return;
+    document.getElementById('archive-detail-title').textContent=g.title;
+    document.getElementById('archive-detail-note').textContent=g.note;
+    document.getElementById('archive-detail-ev').textContent='E.V.：'+g.ev;
+    document.getElementById('archive-detail').hidden=false;
+  }));
+  document.getElementById('letter-envelope').hidden=!(state.letterUnlocked&&!letterBurned);
+}
+function openArchive(idx){
+  const a=ARCHIVE[idx];if(!a)return;
+  document.getElementById('archive-detail-title').textContent=a.title;
+  document.getElementById('archive-detail-note').textContent=a.note;
+  document.getElementById('archive-detail-ev').textContent='E.V.：'+a.ev;
+  document.getElementById('archive-detail').hidden=false;
+}
+document.getElementById('archive-detail-close').addEventListener('click',()=>{document.getElementById('archive-detail').hidden=true;});
+document.getElementById('send').addEventListener('click',()=>{processCommand(document.getElementById('msg').value);document.getElementById('msg').value='';});
+document.getElementById('msg').addEventListener('keydown',e=>{if(e.key==='Enter'){processCommand(e.target.value);e.target.value='';}});
+document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>processCommand(b.dataset.q)));
+document.getElementById('fillall').addEventListener('click',()=>{
+  for(const key of Object.keys(COLLECTIBLES))for(let i=0;i<dialogue[key].length;i++)state.collected[key][i]=true;
+  for(const key of Object.keys(COLLECTIBLES))state.easterEggShown[key]=true;
+  state.letterUnlocked=true;collectProgress();
+});
+document.getElementById('letter-open').addEventListener('click',()=>{
+  window.letterBurn.render(document.getElementById('letter-canvas'), PETER_LETTER);
+  document.getElementById('letter-read').hidden=false;
+  document.getElementById('letter-modal').hidden=false;
+});
+function showForwardLook(){
+  if(forwardShown)return;forwardShown=true;
+  window.letterBurn.forwardLook(document.getElementById('forward-canvas'));
+}
+document.getElementById('letter-read').addEventListener('click',()=>{
+  document.getElementById('letter-read').hidden=true;
+  burning=true;
+  window.letterBurn.burn(document.getElementById('letter-canvas'), ()=>{
+    burning=false;
+    letterBurned=true;
+    document.getElementById('letter-modal').hidden=true;
+    document.getElementById('letter-envelope').hidden=true;
+    document.getElementById('brand-new-day').hidden=false;
+  });
+});
+document.getElementById('letter-modal').addEventListener('pointerdown',()=>{if(burning)showForwardLook();});
+function paintExtras(){
+  document.getElementById('skins').innerHTML='<div class="g-cat">皮肤预览（一起玩配色）</div>'+Object.entries(SKINS).map(([k,s])=>`<div class="card"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${s.glow};margin-right:8px"></span>${s.name} · 身体 ${s.body} · 光 ${s.glow}</div>`).join('');
+  document.getElementById('times').innerHTML='<div class="g-cat">时间感知台词</div>'+Object.entries(TIME_LINES).map(([k,lines])=>`<div class="card"><b>${k}</b>：${lines.join(' / ')}</div>`).join('');
+}
+paintExtras();
+paintGallery();
+</script>
+</body>
+</html>

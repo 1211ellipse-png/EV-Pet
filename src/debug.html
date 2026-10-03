@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <title>EV · 控制台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="panel-page">
+  <section class="debug standalone control-console">
+    <aside class="side-nav">
+      <div class="nav-brand"><span class="chat-mark">EV</span><span>控制台<small>DESKTOP LINK</small></span></div>
+      <button class="nav-item active" data-page-target="dialogue"><span>01</span> 对话</button>
+      <button class="nav-item" data-page-target="pomodoro"><span>02</span> 番茄钟</button>
+      <button class="nav-item" data-page-target="settings"><span>03</span> 设置</button>
+      <button class="nav-item" data-page-target="stats"><span>04</span> 状态统计</button>
+      <div class="nav-spacer"></div>
+      <button id="quit" class="nav-quit">退出 EV</button>
+    </aside>
+    <div class="panel-main">
+      <header class="panel-header"><div><span class="eyebrow">EV / FIELD CONSOLE</span><h1 id="page-title">对话</h1></div><div class="panel-window-actions"><kbd>拖动此处移动 · Ctrl ⇧ E 隐藏</kbd><button type="button" id="hide-debug" class="window-close" aria-label="隐藏控制台">×</button></div></header>
+      <div class="telemetry"><span class="pulse"></span><span id="state">正在连接 EV…</span><span id="fps">LIVE</span></div>
+      <main class="page-stack">
+        <section class="page active" data-page="dialogue">
+          <p class="interaction-help">点击桌面上的蜘蛛也会打开这个面板。输入自然语言或短指令；回复由本地台词库随机抽取，不会上传内容。</p>
+          <button type="button" id="open-chat" class="primary-action">打开浮动对话窗</button>
+          <div class="quick-grid">
+            <button type="button" data-command="你好">问候</button>
+            <button type="button" data-command="测试受惊">测试受惊反应</button>
+            <button type="button" data-command="蜘蛛侠最近怎么样">询问 Boss</button>
+            <button type="button" data-command="我的名字是什么意思">问 EV 的名字</button>
+          </div>
+          <div class="group-title">对话示例</div>
+          <p class="interaction-help">试试：你在做什么、现在几点、你叫什么名字、蜘蛛侠最近怎么样、开始番茄钟、织个网吧。</p>
+        </section>
+        <section class="page" data-page="pomodoro">
+          <div class="group-title">番茄钟控制</div>
+          <p class="interaction-help">在专注和休息阶段，倒计时会显示在 EV 的腹部光带中。默认 25 分钟专注、5 分钟休息，可到设置页修改。</p>
+          <div class="quick-grid">
+            <button type="button" data-command="开始番茄钟">开始 / 重新开始</button>
+            <button type="button" data-command="暂停计时">暂停</button>
+            <button type="button" data-command="继续计时">继续</button>
+            <button type="button" data-command="快进">快进到阶段结束</button>
+            <button type="button" data-command="番茄钟状态">查看状态</button>
+            <button type="button" data-command="停止番茄钟">停止并清空</button>
+          </div>
+          <div class="status-card"><span>当前阶段</span><strong id="pomo-status">待机</strong></div>
+        </section>
+        <section class="page" data-page="settings">
+          <div class="group-title">互动设置</div>
+          <label class="text-setting">对你的称呼（可留空）<input id="user-title" maxlength="24" placeholder="默认不使用称呼"></label>
+          <div class="toggles">
+            <label><input type="checkbox" data-toggle="roam" checked> 自主爬行</label>
+            <label><input type="checkbox" data-toggle="gaze" checked> 注视光标</label>
+            <label><input type="checkbox" data-toggle="startle" checked> 点击受惊</label>
+          </div>
+          <div class="group-title">步态与追随</div><div id="controls"></div>
+          <div class="group-title">互动与番茄钟</div>
+          <div class="interaction-toggles">
+            <label><input type="checkbox" data-interaction-toggle="clingEnabled" checked> 空闲靠近</label>
+            <label><input type="checkbox" data-interaction-toggle="weavingEnabled" checked> 织网彩蛋</label>
+            <label><input type="checkbox" data-interaction-toggle="napEnabled" checked> 打盹 / 晒太阳</label>
+            <label><input type="checkbox" data-interaction-toggle="ambientTalkEnabled" checked> 空闲台词</label>
+          </div>
+          <div id="interaction-controls"></div>
+          <footer><button id="save">保存设置</button><span id="saved">拖动后立即生效</span></footer>
+        </section>
+        <section class="page" data-page="stats">
+          <div class="group-title">运行状态</div>
+          <div class="status-grid">
+            <div class="status-card"><span>桌宠状态</span><strong id="stats-status">等待连接</strong></div>
+            <div class="status-card"><span>番茄钟</span><strong id="stats-pomodoro">待机</strong></div>
+            <div class="status-card"><span>累计运行</span><strong id="companion-time">读取中</strong></div>
+            <div class="status-card"><span>默认专注时长</span><strong id="stats-work-length">25 分钟</strong></div>
+          </div>
+          <p class="interaction-help">显示 EV 本次及累计运行状态。所有对话均在本机解析，不会联网发送。</p>
+        </section>
+      </main>
+      <footer class="console-footer"><span>按 Esc 或 Ctrl+Shift+E 隐藏控制台。</span><span>状态实时更新</span></footer>
+    </div>
+  </section>
+  <script src="debug.js"></script>
+</body>
+</html>

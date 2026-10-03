@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>投喂</title>
+<style>
+  body { background: transparent; margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: "Segoe UI","Microsoft YaHei",sans-serif; }
+  .box { background: #121215; border: 1px solid #ff2a2a66; border-radius: 8px; padding: 14px 16px; box-shadow: 0 8px 30px rgba(0,0,0,.8); text-align: center; }
+  .q { color: #e0e0e0; font-size: 13px; margin-bottom: 12px; }
+  .btns { display: flex; gap: 8px; justify-content: center; }
+  button { padding: 8px 14px; border: 1px solid #26262e; border-radius: 4px; background: rgba(255,42,42,.1); color: #e0e0e0; cursor: pointer; font-size: 12px; }
+  button:hover { border-color: #ff2a2a; box-shadow: 0 0 10px rgba(255,42,42,.4); }
+  #cancel { background: #121215; color: #8a8a92; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="q">是给我吃的吗？</div>
+    <div class="btns">
+      <button id="confirm">确认投喂</button>
+      <button id="cancel">算了</button>
+    </div>
+  </div>
+  <script src="feed.js"></script>
+</body>
+</html>

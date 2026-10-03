@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <link rel="stylesheet" href="style.css">
+  <title>EV · 控制面板</title>
+</head>
+<body class="chat-page">
+  <div class="crt-overlay"></div>
+  <section class="chat-console">
+    <div class="panel-main chat-main">
+      <header class="panel-header"><div><span class="eyebrow">EV / LOCAL CHANNEL · 按住标题栏移动</span><h1 id="chat-page-title" class="glitch-title" data-text="对话">对话</h1></div><button type="button" id="close" class="window-close" aria-label="关闭">×</button></header>
+      <div class="telemetry"><span class="pulse"></span><span id="chat-status">频道已建立。输入明确指令。</span><span>LOCAL</span></div>
+      <main class="page-stack">
+        <section class="page active dialogue-page" data-page="dialogue">
+          <div id="message-list" class="message-list" aria-live="polite"><div class="message ev-message">频道已建立。你可以输入问题或指令。</div></div>
+          <form id="chat" class="message-form">
+            <input id="message" autocomplete="off" maxlength="300" placeholder="输入内容……例如：蜘蛛侠最近怎么样">
+            <button type="submit">发送</button>
+          </form>
+          <div class="example-row"><button type="button" data-command="现在几点">现在几点</button><button type="button" data-command="番茄钟状态">计时状态</button><button type="button" data-command="织个网吧">织个网</button></div>
+        </section>
+        <section class="page" data-page="pomodoro">
+          <div class="group-title">FOCUS TIMER · 磁带舱</div>
+          <div class="tape-deck-wrap">
+            <canvas id="tape-canvas" width="340" height="300"></canvas>
+            <div class="tape-controls">
+              <button type="button" id="tape-play" class="tape-btn">▶ 开始</button>
+              <button type="button" id="tape-rewind" class="tape-btn">⏪ 倒带</button>
+            </div>
+          </div>
+          <p class="interaction-help">左轮 = 剩余时间，右轮 = 已用时间。倒带回到起点。</p>
+        </section>
+        <section class="page settings-page" data-page="settings">
+          <label class="text-setting">对你的称呼（可留空）<input id="chat-user-title" maxlength="24" placeholder="默认不使用称呼"></label>
+          <label class="text-setting">你的生日（月/日，用于生日彩蛋）
+            <div class="number-settings">
+              <input id="chat-birthday-month" type="number" min="1" max="12" placeholder="月">
+              <input id="chat-birthday-day" type="number" min="1" max="31" placeholder="日">
+            </div>
+          </label>
+          <div class="number-settings">
+            <label>专注时长（分钟）<input id="chat-work-minutes" type="number" min="5" max="90"></label>
+            <label>休息时长（分钟）<input id="chat-break-minutes" type="number" min="1" max="30"></label>
+          </div>
+          <div class="interaction-toggles vertical-toggles">
+            <label><input type="checkbox" data-interaction-toggle="clingEnabled"> 空闲时靠近光标</label>
+            <label><input type="checkbox" data-interaction-toggle="weavingEnabled"> 空闲时织网</label>
+            <label><input type="checkbox" data-interaction-toggle="napEnabled"> 长时间空闲时打盹</label>
+            <label><input type="checkbox" data-interaction-toggle="ambientTalkEnabled"> 随机彩蛋台词</label>
+          </div>
+          <div class="group-title">AI 模式（可选，需填 API Key）</div>
+          <label><input type="checkbox" data-ai-toggle> 启用 AI 兜底（匹配不到台词时用 AI 回答）</label>
+          <label class="text-setting">AI API Key（DeepSeek）<input id="chat-ai-key" maxlength="120" placeholder="sk-..."></label>
+          <p class="interaction-help">离线台词库优先；只有匹配不到时才问 AI。Key 存在本机 config.json，不会上传。</p>
+          <button type="button" id="save-chat-settings">保存设置</button><span id="chat-saved" class="save-note">修改即时生效。</span>
+        </section>
+        <section class="page" data-page="stats">
+          <div class="status-grid">
+            <div class="status-card"><span>桌宠状态</span><strong id="chat-stats-status">连接中</strong></div>
+            <div class="status-card"><span>番茄钟</span><strong id="chat-stats-pomo">待机</strong></div>
+            <div class="status-card"><span>累计运行</span><strong id="chat-companion-time">读取中</strong></div>
+          </div>
+          <p class="interaction-help">对话和台词均在本机处理，不会上传。</p>
+        </section>
+        <section class="page" data-page="gallery">
+          <div class="group-title">PETER'S ARCHIVE · 蜘蛛档案库</div>
+          <div id="gallery"></div>
+          <div id="letter-envelope" class="letter-envelope" hidden>
+            <button id="letter-open" class="letter-open">✉ 收到一封来自 P. 的信</button>
+          </div>
+          <div id="brand-new-day" class="brand-new-day" hidden>BRAND NEW DAY</div>
+        </section>
+        <section class="page" data-page="todo">
+          <div class="group-title">TODO · 待办事项</div>
+          <div class="todo-form">
+            <input id="todo-input" maxlength="60" placeholder="添加待办……">
+            <input id="todo-minutes" type="number" min="1" max="10080" placeholder="分钟后提醒(可空)">
+            <button id="todo-add">添加</button>
+          </div>
+          <div id="todo-list"></div>
+        </section>
+        <section class="page" data-page="play">
+          <div class="group-title">PLAY · 一起玩</div>
+          <div class="quick-grid">
+            <button type="button" data-play="laser">🔴 追逐红点</button>
+            <button type="button" data-play="spin">🔄 转圈翻跟头</button>
+            <button type="button" data-play="web">🕸 织网展示</button>
+            <button type="button" data-play="turtle">🍲 海龟汤</button>
+            <button type="button" data-play="swing">🕷 荡丝</button>
+          </div>
+          <p class="interaction-help">点一个玩法，看她陪你玩。海龟汤需要到「聊天」里用"是/否"提问。</p>
+        </section>
+        <div id="archive-detail" class="archive-detail" hidden>
+          <div class="archive-paper">
+            <div class="archive-img">暂无权限阅读此照片，拜托，boss 很懂得保密的</div>
+            <div class="archive-title" id="archive-detail-title"></div>
+            <div class="archive-note" id="archive-detail-note"></div>
+            <div class="archive-ev" id="archive-detail-ev"></div>
+            <button id="archive-detail-close" class="tape-btn">收回</button>
+          </div>
+        </div>
+        <div id="letter-modal" class="letter-modal" hidden>
+          <canvas id="letter-canvas" width="400" height="560"></canvas>
+          <canvas id="forward-canvas"></canvas>
+          <button id="letter-read" class="letter-read">我已阅读完毕</button>
+        </div>
+        <div id="birthday-modal" class="birthday-modal" hidden>
+          <div class="birthday-paper">
+            <div class="birthday-meta">FROM P. · 生日快乐</div>
+            <div class="birthday-body" id="birthday-body"></div>
+            <button id="birthday-close" class="tape-btn">收下</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+  <script src="letterBurn.js"></script>
+  <script src="tapeDeck.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>

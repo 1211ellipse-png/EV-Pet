@@ -1,0 +1,18 @@
+{
+  "body": { "head": [20, 18], "abdomen": [30, 26] },
+  "legs": { "femur": 30, "tibia": 25, "tarsus": 10, "jointRadius": [4.5, 2.2, 1.6], "stepThreshold": 22, "lookAhead": 0.18, "stepDuration": 0.18 },
+  "gait": { "phaseOrder": "L1,R2,L3,R4,R1,L2,R3,L4", "waveSpread": 0.125 },
+  "motion": { "walkSpeed": 125, "chaseSpeed": 210, "turnSmoothing": 0.14 },
+  "chase": { "followDistance": 120, "followRadius": 420, "orbitBias": 0.35 },
+  "behavior": { "roam": true, "gaze": true, "startle": true },
+  "persona": { "userTitle": "" },
+  "ai": { "enabled": false, "provider": "deepseek", "apiKey": "", "model": "deepseek-chat", "baseUrl": "https://api.deepseek.com/v1/chat/completions" },
+  "interaction": {
+    "pomodoroWorkMinutes": 25, "pomodoroBreakMinutes": 5,
+    "clingEnabled": true, "clingAfterSeconds": 180, "clingDistance": 40,
+    "napEnabled": true, "napAfterSeconds": 600,
+    "weavingEnabled": true, "weavingEveryMinutes": 60,
+    "ambientTalkEnabled": true, "ambientTalkMinMinutes": 20, "ambientTalkMaxMinutes": 40
+  },
+  "render": { "activeFps": 60, "idleFps": 12, "glowColor": "#35E0FF", "accentRed": "#E62429", "accentBlue": "#2A6BE0" }
+}

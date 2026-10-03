@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <title>EV Pet</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="pet" aria-label="EV cyber spider"></canvas>
+  <section id="debug" class="debug" hidden>
+    <header><div><span class="eyebrow">EV / FIELD CALIBRATION</span><h1>步态调试</h1></div><kbd>Ctrl ⇧ E</kbd></header>
+    <div class="telemetry"><span class="pulse"></span><span id="state">PATROL · 巡视</span><span id="fps">60 FPS</span></div>
+    <div class="toggles">
+      <label><input type="checkbox" data-toggle="roam" checked> 自主爬行</label>
+      <label><input type="checkbox" data-toggle="gaze" checked> 注视光标</label>
+      <label><input type="checkbox" data-toggle="startle" checked> 点击受惊</label>
+    </div>
+    <div id="controls"></div>
+    <footer><button id="save">保存为默认参数</button><span id="saved">实时预览 · 配置热重载</span></footer>
+  </section>
+  <form id="preview-chat" class="preview-chat" hidden>
+    <input id="preview-command" autocomplete="off" maxlength="300" placeholder="和 EV 说话……">
+    <button type="submit">发送</button>
+    <button type="button" id="preview-chat-close" aria-label="关闭">×</button>
+  </form>
+  <script src="renderer.js"></script>
+</body>
+</html>
